@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="assets/js/calc.js"></script>
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <title>FCC-Javascript Calculator</title>
+  </head>
+  <style>
+   * {
+	padding: auto;
+	margin: 0;
+	box-sizing: border-box;
+	font-family: 'Open Sans', sans-serif;
+}
+
+body {
+	background: #d9d8d8;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+#calculator {
+	position: relative;
+	border-radius: 7px;
+	margin: auto;
+	margin-top: 20px;
+	display: block;
+	height: auto;
+	width: 278px;
+	background-color: rgb(255, 255, 255);
+	font-size: 0.8em;
+	padding: 5px;
+	max-width: 320px;
+}
+#calculator:before,
+#calculator:after {
+	content: '';
+	position: absolute;
+	z-index: -1;
+	-webkit-box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+	-moz-box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+	box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+	top: 10px;
+	bottom: 10px;
+	left: 0;
+	right: 0;
+	-moz-border-radius: 100px / 10px;
+	border-radius: 100px / 10px;
+}
+#calculator:after {
+	right: 10px;
+	left: auto;
+	
+}
+
+#secondaryDisplay {
+	position: absolute;
+	top: 3px;
+	right: 10px;
+}
+
+#display {
+	width: 100%;
+	padding: 15px 0px;
+	text-align: right;
+	font-size: 2.5em;
+	font-family: 'Oxygen Mono', monospace;
+	background: inherit;
+	color: black;
+}
+
+button {
+	width: 60px;
+	height: 60px;
+	margin: 4px 2px;
+	outline: none;
+	border: none;
+	background: rgb(223, 223, 223);
+	color: black;
+	border-radius: 5px;
+	font-size: 1.4em;
+}
+
+button:active {
+	background: #bfbfbf;
+}
+
+button:nth-child(2) {
+	margin-left: 205px;
+	display: block;
+	background: #ef4a49;
+	color: white;
+}
+
+button:nth-child(2):active {
+	background: #b14e4d;
+}
+
+button:nth-child(6),
+button:nth-child(10),
+button:nth-child(14),
+button:nth-child(17),
+button:nth-child(18) {
+	background: #06e0c3;
+	color: white;
+}
+
+button:nth-child(6):active,
+button:nth-child(10):active,
+button:nth-child(14):active,
+button:nth-child(17):active,
+button:nth-child(18):active {
+	background: #218d84;
+}
+
+footer {
+	position: absolute;
+	bottom: 0;
+	padding: 20px;
+	width: 100%;
+	text-align: center;
+}
+
+a {
+	text-decoration: none;
+	color: inherit;
+}
+
+h1 {
+	display: inline;
+	font-size: 50px;
+	color: #131313;
+	letter-spacing: 0.05em;
+	transition: all 0.3s;
+	
+}
+</style>
+<script>
+  let trailingResult = 0;
+let operationOptions = ['divide', 'multiply', 'subtract', 'add'];
+let workingOperation = "";
+
+function updateDisplay(input) {
+  let display = document.getElementById("display");
+  let secondaryDisplay = document.getElementById("secondaryDisplay");
+
+  if (display.innerHTML === "0" && operationOptions.indexOf(input) === -1) {
+    if (input === "decimal") {
+      display.innerHTML = "0.";
+    } else if (input === "negative-value") {
+      if (display.innerHTML.indexOf("-1") === -1) {
+        display.innerHTML = "-" + display.innerHTML
+      } else if (display.innerHTML.indexOf("-1" > -1)) {
+        display.innerHTML = display.innerHTML.slice(1, display.innerHTML.length);
+      }
+    } else {
+      display.innerHTML = input;
+    }
+  } else if (operationOptions.indexOf(input) >= 0) {
+    // console.log("Dealing with a operation");
+
+    if (trailingResult === display.innerHTML) {
+      // Operand button pressed twice exeception
+      workingOperation = input;
+    } else if (workingOperation === "") {
+      // Dealing without an operand
+      workingOperation = input;
+      trailingResult = display.innerHTML;
+      secondaryDisplay.innerHTML = trailingResult;
+      display.innerHTML = 0;
+    } else if(input==="subtract"){
+      display.innerHTML="-" + display.innerHTML
+    }else {
+      // Dealing with a set operand
+      // console.log(display.innerHTML, " Dealing with set operand");
+      trailingResult = calculate(trailingResult, display.innerHTML, workingOperation);
+      secondaryDisplay.innerHTML = trailingResult;
+      display.innerHTML = 0;
+      workingOperation = input;
+    }
+  } else if (input === "equals") {
+    display.innerHTML = calculate(trailingResult, display.innerHTML, workingOperation);
+    trailingResult = 0;
+    workingOperation = "";
+    secondaryDisplay.innerHTML = trailingResult;
+  } else if (input === "decimal") {
+    // console.log('decimal clicked');
+    if (display.innerHTML.indexOf(".") === -1) {
+      display.innerHTML += ".";
+    }
+    // console.log("decimal skipped because decimal already in number.");
+  } else if (input === "negative-value") {
+    // console.log("negative-value selected");
+    if (display.innerHTML.indexOf("-1") === -1) {
+      display.innerHTML = "-" + display.innerHTML
+    } else if (display.innerHTML.indexOf("-1" > -1)) {
+      display.innerHTML = display.innerHTML.slice(1, display.innerHTML.length);
+    }
+  } else {
+    display.innerHTML += input;
+  }
+  // 5 - 2 = / 2 =
+  // console.log(trailingResult, "<= trailingResult", display.innerHTML, " <= display.innerHTML", workingOperation, " <= workingOperation");
+}
+
+function clearDisplay() {
+  let display = document.getElementById("display");
+  let secondaryDisplay = document.getElementById("secondaryDisplay");
+  trailingResult = 0;
+  display.innerHTML = 0;
+  secondaryDisplay.innerHTML = trailingResult;
+}
+
+function calculate(firstNumber, secondNumber, operation) {
+  let result;
+  firstNumber = parseFloat(firstNumber);
+  secondNumber = parseFloat(secondNumber);
+  switch(operation) {
+    case "add":
+      // console.log("add calculated")
+      result = firstNumber + secondNumber;
+      break;
+    case "subtract":
+      // console.log("subtract calculated")
+      result = firstNumber - secondNumber;
+      break;
+    case "multiply":
+      // console.log("multiply calculated")
+      result = firstNumber * secondNumber;
+      break;
+    case "divide":
+      // console.log("divide calculated")
+      result = firstNumber / secondNumber;
+      break;
+    default:
+      console.log("Calculate switch statement missed something");
+  }
+  return result.toString();
+}
+</script>
+  <body>
+    <div id="calculator">
+      <div id="display"></div>
+      <button id="clear" onclick="clearDisplay()">AC</button>
+      <button id="seven" onclick="updateDisplay(7)">7</button>
+      <button id="eight" onclick="updateDisplay(8)">8</button>
+      <button id="nine" onclick="updateDisplay(9)">9</button>
+
+      <button id="divide" onclick="updateDisplay('divide')">/</button>
+      <button id="four" onclick="updateDisplay(4)">4</button>
+      <button id="five" onclick="updateDisplay(5)">5</button>
+      <button id="six" onclick="updateDisplay(6)">6</button>
+                                                           
+      <button id="multiply" onclick="updateDisplay('multiply')">*</button>
+      <button id="one" onclick="updateDisplay(1)">1</button>
+      <button id="two" onclick="updateDisplay(2)">2</button>
+      <button id="three" onclick="updateDisplay(3)">3</button>
+                                   
+      <button id="subtract" onclick="updateDisplay('subtract')">-</button>
+      <button id="zero" onclick="updateDisplay(0)">0</button>
+      <button id="decimal" onclick="updateDisplay('decimal')">.</button>
+      <button id="equals" onclick="updateDisplay('equals')">=</button>
+      <button id="add" onclick="updateDisplay('add')">+</button>
+      <div id="secondaryDisplay"></div>
+    </div>
+    
+  </body>
+  <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
+</html>
